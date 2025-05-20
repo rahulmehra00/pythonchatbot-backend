@@ -14,6 +14,15 @@ from fuzzywuzzy import process
 # Load environment variables
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+client = None
+if "OPENAI_API_KEY":
+    from openai import OpenAI
+    client = OpenAI(api_key="OPENAI_API_KEY")
+    
+
+
+
 app = Flask(__name__)
 
 # ✅ Allow both local dev and deployed frontend
@@ -26,7 +35,7 @@ def handle_options():
         return '', 200
 
 # Load data
-with open('src/data/data.json', 'r', encoding='utf-8') as file:
+with open('data.json', 'r', encoding='utf-8') as file:
     qa_data = json.load(file)
 
 qa_data_lower = {q.lower(): a for q, a in qa_data.items()}
@@ -63,6 +72,8 @@ def fuzzy_match(query, choices, threshold=90):
     return match if score >= threshold else None
 
 def generate_answer_rag(query, context):
+    if client is None:
+        return "OpenAI API key not set. Cannot generate response."
     prompt = f"""You are a helpful assistant for Study in India.
 Use the following context to answer the question.
 
